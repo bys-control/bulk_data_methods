@@ -15,6 +15,17 @@ module BulkDataMethods
 
     module ClassMethods
 
+      def quote(value)
+        case value
+          when String
+            "'\"#{value}\"'"
+          when nil
+            "NULL"
+          else
+            "'#{value}'"
+        end
+      end
+
       # BULK creation of many rows
       #
       # @example no options used
@@ -233,16 +244,16 @@ module BulkDataMethods
               end
               datatable_rows << row.map do |column_name,column_value|
                 column_name = column_name.to_s
-                columns_hash_value = columns_hash[column_name]
+                columns_hash_value = columns_hash[column_name]      
                 if i == 0
                   if columns_hash_value.sql_type=="jsonb" && !column_value.nil? && !column_value!='NULL'
-                    "'#{connection.quote(column_value)}'::#{columns_hash_value.sql_type} as #{column_name}"
+                    "#{quote(column_value)}::#{columns_hash_value.sql_type} as #{column_name}"
                   else
                     "#{connection.quote(column_value)}::#{columns_hash_value.sql_type} as #{column_name}"
                   end
                 else
                   if columns_hash_value.sql_type=="jsonb" && !column_value.nil? && !column_value!='NULL'
-                    "'#{connection.quote(column_value)}'"
+                    "#{quote(column_value)}"
                   else
                     connection.quote(column_value)
                   end

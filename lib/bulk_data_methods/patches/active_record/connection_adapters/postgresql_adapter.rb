@@ -16,7 +16,8 @@ module ActiveRecord
         # @param [Value]
         def _quote(value)
           case value
-            when Array      then "'{#{value.join(',')}}'"
+            when Array
+              "'{#{value.join(',')}}'"
             else
               super
           end
