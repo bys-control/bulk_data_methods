@@ -97,7 +97,7 @@ module BulkMethodsMixin
           end
         end
         column_values = column_names.map do |column_name|
-          quote_value(row[column_name], columns_hash[column_name.to_s])
+          bulk_methods_quote_value(columns_hash[column_name.to_s], row[column_name])
         end.join(',')
         "(#{column_values})"
       end.each_slice(options[:slice_size]) do |insert_slice|
@@ -226,9 +226,9 @@ module BulkMethodsMixin
             column_name = column_name.to_s
             columns_hash_value = columns_hash[column_name]
             if i == 0
-              "#{quote_value(column_value, columns_hash_value)}::#{columns_hash_value.sql_type} as #{column_name}"
+              "#{bulk_methods_quote_value(columns_hash_value, column_value)}::#{columns_hash_value.sql_type} as #{column_name}"
             else
-              quote_value(column_value, columns_hash_value)
+              bulk_methods_quote_value(columns_hash_value, column_value)
             end
           end.join(',')
         end
@@ -250,5 +250,13 @@ module BulkMethodsMixin
       end
     end
     return returning
+  end
+
+  def bulk_methods_quote_value(postgre_sql_column, column_value)
+    if Rails.version >= '5.0.0'
+      connection.quote connection.type_cast_from_column(postgre_sql_column, column_value)
+    else
+      quote_value(column_value, postgre_sql_column)
+    end
   end
 end
